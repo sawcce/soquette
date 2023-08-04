@@ -1,6 +1,7 @@
 type Child = ComponentInvocation<any> | Node
 
 interface Node {
+	id: string
 	tag: string
 	props: Record<string, string>
 	children: Child[] | Child | string
@@ -11,13 +12,14 @@ const el = (
 	props: Record<string, string>,
 	children: Child[] | Child | string = []
 ): Node => ({
+	id: crypto.randomUUID(),
 	tag,
 	props,
 	children,
 })
 
 function renderUnit(unit: Child) {
-	if (Object.hasOwn(unit, 'id')) {
+	if (Object.hasOwn(unit, 'state')) {
 		const invocation = unit as ComponentInvocation<Record<string, unknown>>
 		return render(
 			invocation.render({ ...invocation.state, ...invocation.props })
@@ -28,9 +30,11 @@ function renderUnit(unit: Child) {
 }
 
 function render(node: Node) {
-	const start = `<${node.tag}${Object.entries(node.props).map(
+	const start = `<${node.tag} id="${node.id}"${Object.entries(node.props).map(
 		([key, value]) => ` ${key}="${value}"`
 	)}>`
+
+	console.log(start, node)
 
 	const end = `</${node.tag}>`
 
@@ -74,7 +78,9 @@ const Greet = Component(
 	({ name }) => el('h1', {}, `Hello, ${name}!`)
 )
 
-const tree = el('html', { lang: 'en' }, [el('body', {}, [Greet()])])
+const tree = el('html', { lang: 'en' }, [
+	el('body', {}, [Greet({ name: 'sawcce' })]),
+])
 console.log(tree)
 
 const page = render(tree)
